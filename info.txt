@@ -1,4 +1,86 @@
 
 https://www.zenrows.com/blog/scraping-javascript-rendered-web-pages#installing-the-requirements
-https://medium.com/analytics-vidhya/using-python-and-selenium-to-scrape-infinite-scroll-web-pages-825d12c24ec7
+https://csnotes.medium.com/web-scraping-infinite-scrolling-with-selenium-97f820d2e506
 https://www.zenrows.com/blog/web-scraping-with-selenium-in-python
+
+----------------------------------------------------------------------------------------
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium import webdriver
+import time
+
+chrome_options = webdriver.ChromeOptions()
+# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko")
+#extra options
+chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+
+driver = webdriver.Chrome('chromedriver', options=chrome_options)
+driver.set_window_size(1320, 550)
+
+exchange_link = "https://icodrops.com/ico-stats/"
+driver.get(exchange_link)
+
+SCROLL_PAUSE_TIME = 5 #5 seconds
+time.sleep(SCROLL_PAUSE_TIME)
+
+# Get scroll height
+last_height = driver.execute_script("return document.body.scrollHeight")
+
+for x in range(0, 10):
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    driver.find_element(By.XPATH, "//body").send_keys("shift")
+    time.sleep(SCROLL_PAUSE_TIME)
+    new_height = driver.execute_script("return document.body.scrollHeight")
+    print('current Y: ' + str(new_height))
+    if new_height == last_height:
+        break
+    last_height = new_height
+driver.close()
+
+driver.find_element(By)
+----------------------------------------------------------------------------------------
+
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium import webdriver
+import time
+
+chrome_options = webdriver.ChromeOptions()
+# chrome_options.add_argument('--headless')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko")
+#extra options
+chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+
+driver = webdriver.Chrome('chromedriver', options=chrome_options)
+driver.set_window_size(1320, 550)
+
+exchange_link = "https://icodrops.com/ico-stats/"
+driver.get(exchange_link)
+
+SCROLL_PAUSE_TIME = 5 #5 seconds
+time.sleep(SCROLL_PAUSE_TIME)
+
+# Get scroll height
+last_height = driver.execute_script("return document.body.scrollHeight")
+
+for x in range(0, 10):
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    driver.find_element(By.XPATH, "//body").send_keys("shift")
+    time.sleep(SCROLL_PAUSE_TIME)
+    new_height = driver.execute_script("return document.body.scrollHeight")
+    print('current Y: ' + str(new_height))
+    if new_height == last_height:
+        break
+    last_height = new_height
+driver.close()
+
+driver.find_element(By)

@@ -1,26 +1,42 @@
-import time
-
-import pandas as pd
 from selenium import webdriver
-from selenium.webdriver import Chrome
-from selenium.webdriver.chrome.service import Service
+import time
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 
-# start by defining the options
-options = webdriver.ChromeOptions()
-options.headless = True # it's more scalable to work in headless mode
-# normally, selenium waits for all resources to download
-# we don't need it as the page also populated with the running javascript code.
-options.page_load_strategy = 'none'
-# this returns the path web driver downloaded
-chrome_path = ChromeDriverManager().install()
-chrome_service = Service(chrome_path)
-# pass the defined options and service objects to initialize the web driver
-driver = Chrome(options=options, service=chrome_service)
-driver.implicitly_wait(5)
+browser = webdriver.Chrome()
+browser.get("https://myebox.ro/categorii/accesorii-de-impachetat/")
 
-url = "https://www.instacart.com/store/sprouts/collections/bread?guest=True"
+time.sleep(5)
+height = browser.execute_script("return document.body.scrollHeight;")
+print(height)
 
-driver.get(url)
-time.sleep(10)
+links = set()
+for x in range(10):
+    browser.execute_script("window.scrollTo(0,document.body.scrollHeight)")
+    time.sleep(5)
+    new_height = browser.execute_script("return document.body.scrollHeight;")
+    print(new_height)
+    if new_height == height:
+        break
+    height = new_height
+    products = browser.find_elements(By.CSS_SELECTOR, "div > div > h3 > a")
+    for i in products:
+        links.add(i.get_attribute("href"))
+
+print(len(links))
+browser.refresh()
+time.sleep(3)
+
+for x in links:
+    time.sleep(3)
+    try:
+        browser.get(x)
+        product_title = browser.find_element(By.CSS_SELECTOR, "head > title")
+        print(product_title.get_attribute("innerHTML"))
+        product_stoc = browser.find_element(By.CLASS_NAME, "quantity")
+        stoc = (product_stoc.get_attribute("innerHTML")).split('max="')[1].split('"')[0]
+        print(stoc)
+    except:
+        stoc = 1
+        print(stoc)
+
+# browser.close()
