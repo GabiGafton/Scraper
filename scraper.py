@@ -120,4 +120,4 @@ wb.save('prod.xlsx')
 # calculate the time necessary to execute the script
 end = time.time()
 total_time = end - start
-print("\\n TOTAL TIME: {} minutes".format(int(total_time/60)))
+print("\n TOTAL TIME: {} minutes".format(int(total_time/60)))
