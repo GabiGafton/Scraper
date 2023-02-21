@@ -111,8 +111,8 @@ for category in categories:
                 print(stoc)
                 ws.cell(row=first_empty_row, column=column_names[x] + 1).value = "N\\A"
         except:
-            print("MULTIPLE SELECTIONS")
-            ws.cell(row=first_empty_row, column=column_names[x] + 1).value = "N\\A MULTIPLE SELECTIONS AVAILABLE"
+            print("N\\A")
+            ws.cell(row=first_empty_row, column=column_names[x] + 1).value = "N\\A"
 
 # save the xls
 wb.save('prod.xlsx')
