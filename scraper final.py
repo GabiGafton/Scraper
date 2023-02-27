@@ -2,16 +2,17 @@ from selenium import webdriver
 import time
 from datetime import datetime
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 import openpyxl
 
 # calculate the time necessary to execute the script
 start = time.time()
 
-# add the timestamp to the xls
+# add the timestamp to the xlsx
 now = datetime.now()
 now_str = now.strftime("%d/%m/%Y %H:%M:%S")
 
-# load xls
+# load xlsx
 wb = openpyxl.load_workbook('prod.xlsx')
 ws = wb.active
 
@@ -20,7 +21,7 @@ first_empty_row = ws.max_row + 1
 ws.cell(row=first_empty_row, column=1).value = now_str
 
 # category products from site
-categories = ['https://myebox.ro/categorii/accesorii-de-impachetat/',
+CATEGORIES = ['https://myebox.ro/categorii/accesorii-de-impachetat/',
               'https://myebox.ro/categorii/benzi-adezive/',
               'https://myebox.ro/categorii/cutii-protectie-sticle/',
               'https://myebox.ro/categorii/cutii-de-carton/',
@@ -43,7 +44,7 @@ categories = ['https://myebox.ro/categorii/accesorii-de-impachetat/',
 
 browser = webdriver.Chrome()
 
-for category in categories:
+for category in CATEGORIES:
     browser.get(category)
     time.sleep(3)
     height = browser.execute_script("return document.body.scrollHeight;")
@@ -63,7 +64,7 @@ for category in categories:
         for i in products:
             links.add(i.get_attribute("href"))
 
-    print(len(links))
+    print("Numar produse gasite in categorie: ", len(links))
     browser.refresh()
     time.sleep(2)
 
@@ -87,32 +88,59 @@ for category in categories:
         column_names[column[0].value] = current
         current += 1
 
-    for x in links:
-        browser.get(x)
+    for link in links:
+        browser.get(link)
         time.sleep(1)
+        print(link)
         try:
-            # time.sleep(3)
-            print(x)
-            b = browser.find_element(By.XPATH, "(//p[@class='stock in-stock'])[1]")
-            try:
-                stoc = browser.find_element(By.XPATH, "//input[@title='Cantitate']").get_attribute("max")
-                if stoc != "":
-                    print(stoc)
-                    ws.cell(row=first_empty_row, column=column_names[x] + 1).value = stoc
-                else:
-                    c = browser.find_element(By.XPATH, "(//p[@class='stock in-stock'])[1]")
-                    stoc = c.get_attribute("innerHTML").split("Doar ")[1].split(" ")[0]
-                    print(stoc)
-                    ws.cell(row=first_empty_row, column=column_names[x] + 1).value = stoc
-            except:
-                # x = browser.find_element(By.XPATH, "//p[@class='stock out-of-stock']")
-                # stoc = b.get_attribute("class").lstrip("stock").strip()
-                stoc = "DATA NOT AVAILABLE"
+            # for pages with products in stock
+            stoc = browser.find_element(By.XPATH, "//input[@title='Cantitate']").get_attribute("max")
+            if stoc.isdigit():
                 print(stoc)
-                ws.cell(row=first_empty_row, column=column_names[x] + 1).value = "N\\A"
+                ws.cell(row=first_empty_row, column=column_names[link] + 1).value = stoc
+            else:
+                print("Product in stock but data not available")
+                ws.cell(row=first_empty_row, column=column_names[link] + 1).value = "Product in stock but data not available"
         except:
-            print("N\\A")
-            ws.cell(row=first_empty_row, column=column_names[x] + 1).value = "N\\A"
+            pass
+
+        try:
+            # for pages with limited stock products
+            stoc = browser.find_element(By.XPATH, "(//p[@class='stock in-stock'])[1]").get_attribute("innerHTML").split(
+                "Doar ")[1].split(" ")[0]
+            print(stoc)
+            ws.cell(row=first_empty_row, column=column_names[link] + 1).value = stoc
+        except:
+            pass
+
+        try:
+            # for pages with products out of stock
+            stoc = browser.find_element(By.XPATH, "//p[@class='stock out-of-stock']").get_attribute("class").lstrip(
+                "stock").strip()
+            print(stoc)
+            ws.cell(row=first_empty_row, column=column_names[link] + 1).value = stoc
+        except:
+            pass
+
+        try:
+            # for pages with multiple selections available
+            stoc = browser.find_element(By.XPATH, "(//table[@class='variations'])[1]").get_attribute("outerHTML")
+            # print(x.get_attribute("outerHTML"))
+            if "Alege o opțiune" in stoc:
+                print("Selectii multiple")
+                ws.cell(row=first_empty_row, column=column_names[link] + 1).value = "Selectii multiple"
+        except:
+            pass
+
+        try:
+            # for pages with new products, not yet in stock
+            stoc = browser.find_element(By.XPATH,
+                                        "//strong[normalize-space()='Disponibil începand cu 1 Martie pe MyEbox.ro']").get_attribute(
+                "outerHTML").split("<strong>")[1].rstrip("</strong>")
+            print(stoc)
+            ws.cell(row=first_empty_row, column=column_names[link] + 1).value = stoc
+        except:
+            pass
 
 # save the xls
 wb.save('prod.xlsx')
